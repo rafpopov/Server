@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<!-- test1 --->
+<script src="https://unpkg.com/htmx.org@1.9.0"></script> 
+<!--  --->
+{% extends "base.html" %}
+{% block content %}
+
+
+<html>		
+
+<body>
+    
+    <p>
+        Основной сервер <span class="editable" data-default="Xeon E5-2678">
+            <span class="editable-link">Xeon E5-2678</span>
+            <input type="text" class="editable-input" value="Xeon E5-2678">
+        </span> 
+        с оперативной памятью <span class="editable" data-default="64 ГБ DDR4">
+            <span class="editable-link">64 ГБ DDR4</span>
+            <input type="text" class="editable-input" value="64 ГБ DDR4">
+        </span> 
+        работает на частоте <span class="editable" data-default="2.5 ГГц">
+            <span class="editable-link">2.5 ГГц</span>
+            <input type="text" class="editable-input" value="2.5 ГГц">
+        </span>.
+    </p>
+    
+
+    <div class="switch-container">
+        <span class="mode-label"> Экспертный режим </span>
+        <form action="{{ url_for('toggle_mode') }}" method="post">
+        <label class="switch">
+            <input type="checkbox" name="mode_switch" {{ 'checked' if session['mode'] == 'expert' else '' }} onchange="this.form.submit()">
+            <span class="slider"></span>
+        </label>
+		</form>
+    </div>
+		
+		
+	
+
+    {% if not session['Yandex_API_Key'] %}
+    <h2>Введите API-ключ</h2>
+    <form method="POST">
+       <input type="password" name="api_key"  placeholder="Ваш секретный ключ" required>
+	   <input type="text".   name="folder_id" placeholder="Folder ID"  value="{{ session['Yandex_FolderID'] }}" required>
+       <button type="submit">Отправить</button>
+    </form>
+    {%else %}
+	
+	
+
+	{% if session['mode'] == 'expert' %}
+    <div style="display: flex; gap: 25px;"> 
+	    <div class="main-info"> Техническая система: 
+			<span class="editable" data-default="RAID 10">
+			            <span class="editable-link">{{ session['TS_Original'] }}</span>
+			            <input type="text" class="editable-input" value="{{ session['TS_Original'] }}">
+			</span>
+		</div>
+    </div>
+	{% endif %}
+	
+	
+		
+    <form  id="myForm" method="POST">
+		
+    <!------------------   ТС  -------------------->
+	
+	
+    {% if session['TS_Original_YES'] %}
+	{% if session['mode'] == 'normal' %}
+    <div style="display: flex; gap: 25px;"> 
+	    <div class="main-info"> Техническая система: 
+			<strong>{{ session['TS_Original'] }}</strong> 
+		</div>
+        <a href="/reset" class="reset-btn" >Выбрать другую техническую систему</a>
+    </div>
+    {% endif %}
+	
+    <!--------------   Дополнительная информация  ----------------->
+	
+	<div class="extra-info" >
+	    <div class='extra-info-header'  style="display: flex; gap: 25px;"> Дополнительная информация: 
+    		{% if session['TS_Original_YES'] %}
+            <button type="submit" name="show_extra_info" style="display: inline-block; float: right;">Обновить</button>
+    		{% endif %}
+		</div>
+        <div class="checkbox-item" >
+            <input type="checkbox"  name="show_analogs" {% if session.show_analogs %}checked{% endif %} >
+            <label for="show_analogs" >
+	    		{% if session['Main_Func'] %}
+                <span class='checkbox_extra'> Аналоги, выполняющие ту же функцию (
+				    <a hx-target="this" hx-swap="outerHTML" href="#" hx-get="/edit_mainfun">{{ session['Main_Func'] }}</a>
+				</span> 
+				)
+	    		{% else %}
+                Искать аналоги, выполняющие ту же функцию 
+	    		{% endif %}
+            </label>
+        </div>
+		<strong> <span class="{{ 'hidden' if not session.get('show_analogs', True) }}">{{ session['analogs'] }}</span> </strong>
+		
+        <div class="checkbox-item">
+            <input type="checkbox"  name="show_improvements"  {% if session.show_improvements %}checked{% endif %} >
+            <label for="show_improvements">
+	    		{% if session['prilagatel'] %}
+                <span class='checkbox_extra'> Возможные улучшения, новые свойства</span>
+	    		{% else %}
+                Искать новые свойства (на основе "хороших" прилагательных)
+	    		{% endif %}
+				<br>
+			</label>
+		</div>
+        <span class="{{ 'hidden' if not session.get('show_improvements', True) }}"><strong>{{ session['prilagatel'] }}</strong></span  
+	</div></div>
+    		
+
+    {% endif %}
+		
+    <!------------------   ИЗМЕНЕНИЕ  -------------------->
+	
+    {%if session['stage'] == 'show_results' or session['stage'] == 'show_results_waiting' %}
+	    <div style="display: flex; gap: 25px;">
+		     <div class="main-info"> Требуемое изменение: <strong>{{session["Ulutshit_eto"]}}</strong> </div>
+		     <a href="/reset_to_improve" class="reset-btn" >Выбрать другие характеристики</a>
+		</div>
+		
+    <!------------------   РЕКОМЕНДАЦИИ -------------------->
+	
+		{%if session['zpr_list'] %}
+		<div class="rec-divider" > </div>
+		<div class="rec-zpr-header" > 
+			Для модификации технической системы нейросеть рекомендует использовать следующие закономерности развития:
+		</div>
+	     <ul>
+	         {% for rec in session["zpr_list"] %}
+	         <li><strong>{{ rec }}</strong></li>
+	         {% endfor %}
+	     </ul>
+	    {% endif %}
+		<button type="submit" name="load-more-zpr" class="load-more-btn">Ещё...</button>
+
+		{%if session['all_recommendations'] %}
+		<div class="rec-divider-inner" > </div>
+        <div class="rec-header"> Предложения по улучшению:</div>
+        <div class="final-recommendations">
+	         {% for item in session["all_recommendations"] %}
+			 <strong>
+	         <div>
+	             <input type="checkbox" id="{{ loop.index0 }}" name="select_rec_{{ loop.index0 }}" value="aaaa" 
+				 	 			{% if  loop.index0 in session['all_recommendations_selected']  %}checked{% endif %}>
+	             <label for="{{ item }}">{{ item }}</label>
+	         </div>
+		     </strong>
+	         {% endfor %}
+		</div>
+		<button name="select_rec_btn" type="submit"  class="sel-rec-btn">Выбрать</button>
+	    <ul>		 
+	         {% for item in session['all_recommendations_selected'] %}
+	         <li><strong>{{ session["all_recommendations"][item] }}</strong></li>
+			 {% endfor %}
+	    </ul>
+	    {% endif %}
+    {% endif %}
+	
+
+    <!--------------------------   ЗАПРОС  ----------------------->
+	
+	{%if session['stage'] != 'show_results' %}	
+        <div class="query" style="margin-bottom: 5px;"> {{ session['current_query'] }}</div>
+        <input type="text" name="user_ans" size="60" autofocus value="" placeholder = {{session['placeholder']}}>
+        <button type="submit">Отправить</button>
+    {% endif %}
+
+    {% endif %}
+    </form>
+	
+    
+
+
+    <script>
+		
+	
+        document.addEventListener('DOMContentLoaded', function() {
+            const editables = document.querySelectorAll('.editable');
+            
+            editables.forEach(editable => {
+                const link = editable.querySelector('.editable-link');
+                const input = editable.querySelector('.editable-input');
+                const defaultValue = editable.getAttribute('data-default');
+                let previousValue = defaultValue;
+                
+                // Инициализация значения
+                link.textContent = defaultValue;
+                input.value = defaultValue;
+                
+                // Клик по ссылке
+                link.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    startEditing();
+                });
+                
+                // Начало редактирования
+                function startEditing() {
+                    previousValue = link.textContent;
+                    link.style.visibility = 'hidden';
+                    input.style.display = 'inline-block';
+                    input.value = link.textContent;
+                    input.focus();
+                    input.select();
+                    
+                    // Подгоняем ширину поля под содержимое
+                    adjustInputWidth();
+                }
+                
+                // Завершение редактирования
+                function finishEditing(save = true) {
+                    
+                    if (save) {
+                        const newValue = input.value.trim();
+                        link.textContent = newValue || defaultValue;
+                    } else {
+                        link.textContent = previousValue;
+                    }
+                    
+                    input.style.display = 'none';
+                    link.style.visibility = 'visible';
+                }
+                
+                // Подгон ширины поля под текст
+                function adjustInputWidth() {
+                    const tempSpan = document.createElement('span');
+                    tempSpan.style.visibility = 'hidden';
+                    tempSpan.style.whiteSpace = 'pre';
+                    tempSpan.textContent = input.value;
+                    document.body.appendChild(tempSpan);
+                    
+                    input.style.width = (tempSpan.offsetWidth + 15) + 'px';
+                    document.body.removeChild(tempSpan);
+                }
+				
+				
+		// Обработчики для поля ввода
+		        let ignoreBlur = false;
+        
+		        input.addEventListener('blur', function() {
+		            if (!ignoreBlur) {
+		                finishEditing(true);
+		            }
+		            ignoreBlur = false;
+		        });
+        
+		        input.addEventListener('keydown', function(e) {
+		            if (e.key === 'Enter' || e.keyCode === 13) {
+		                finishEditing(true);
+		                ignoreBlur = true; // Игнорируем следующий blur
+		                setTimeout(() => input.blur(), 0);
+		                e.preventDefault();
+		            }
+		            else if (e.key === 'Escape' || e.keyCode === 27) {
+		                finishEditing(false);
+		                ignoreBlur = true; // Игнорируем следующий blur
+		                setTimeout(() => input.blur(), 0);
+		                e.preventDefault();
+		            }
+		        });
+
+
+
+
+
+
+        document.getElementById('myForm').addEventListener('submit', function(e) {
+            // Показываем спиннер
+            showLoading();
+            
+            // Можно добавить здесь AJAX-запрос, если нужно
+            // Если форма отправляется обычным способом, спиннер скроется после перезагрузки страницы
+        });
+    </script>
+    
+	
+	
+	
+	
+</body>
+</html>
+
+{% endblock %}

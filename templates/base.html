@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+	<title>{% block title %}Компьютерная поддержка этапов концептуального проектирования{% endblock %}</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+
+<body>
+
+    <!-- Оверлей и спиннер -->
+    <div id="loading-overlay"></div>
+    <div class="spinner" id="loading-spinner" style="display: none;"></div>
+	
+    <header>
+        <div class="header-container">
+            <h3 style="text-align: center;"> Компьютерная поддержка этапов концептуального проектирования  </h3>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+
+
+
+
+    <footer>
+	<div style="display: flex; justify-content: space-between; align-items: center; padding: 0 20px;">
+            {% if session['stage'] != 'define_ts'  and False %}
+        <div class="footer-container-left" style="margin-left: auto;">	
+            <a href="/reset" class="reset-btn">Начать заново</a>
+        </div>
+            {% endif %}
+        <div class="footer-container-copyright" style="margin-left: auto;">	
+        <form id='copyrightForm' action="{{ url_for('debug_mode') }}" method="post">
+			{% if session['debug_mode'] %}
+            <a href="/reset_all" class="reset-btn">DEBUG - сбросить все настройки </a>
+			{% endif %}	
+		    <!-- Переключатель в виде © -->
+		    <span class="copyright" onclick="toggleDebugSwitch()">
+		        <span id="copyright_switch" class="switch1">©</span> 
+		    </span>
+			2025 НПО ИНФОРМ-СИСТЕМА
+		</form>
+        </div>
+    </div>
+    </footer>
+	
+	
+	
+	
+	
+		
+    <!----
+    <div class="switch-container-debug">
+        <span class="mode-label"> Режим DEBUG </span>
+        <form action="{{ url_for('debug_mode') }}" method="post">
+        <label class="switch">
+            <input type="checkbox" name="debug_switch" {{ 'checked' if session['debug_mode'] == True else ''}} onchange="this.form.submit()">
+            <span class="slider"></span>
+        </label>
+		</form>
+    </div>
+	
+	
+
+    <!-- Переключатель в виде © -->
+
+    <script>
+        let isDebugSwitchOn = false;
+
+        function toggleDebugSwitch() {
+            isDebugSwitchOn = !isDebugSwitchOn;
+            updateDebugSwitch();
+	        document.getElementById('copyrightForm').submit();
+        }
+
+        function updateDebugSwitch() {
+            const switchElement = document.getElementById("copyright_switch");
+            switchElement.classList.toggle("active", isDebugSwitchOn);
+        }
+    </script>
+
+
+	
+	
+
+    <!-- СПИННЕР - режим ОЖИДАНИЯ ответа  -->
+    <script>
+        function showLoading() {
+            document.getElementById('loading-overlay').style.display = 'block';
+            document.getElementById('loading-spinner').style.display = 'block';
+            document.body.classList.add('disabled');
+        }
+    
+        function hideLoading() {
+            document.getElementById('loading-overlay').style.display = 'none';
+            document.getElementById('loading-spinner').style.display = 'none';
+            document.body.classList.remove('disabled');
+        }
+		
+		
+		
+		
+		const clickableText = document.getElementById("clickableText");
+
+		clickableText.addEventListener("click", function() {
+		  // Создаем поле ввода
+		  const input = document.createElement("input");
+		  input.type = "text";
+		  input.value = clickableText.textContent;
+  
+		  // Заменяем текст на поле ввода
+		  clickableText.replaceWith(input);
+  
+		  // Автоматически фокусируемся на поле
+		  input.focus();
+  
+		  // Возвращаем текст, когда поле теряет фокус (например, при клике вне поля)
+		  input.addEventListener("blur", function() {
+		    clickableText.textContent = input.value;
+		    input.replaceWith(clickableText);
+		  });
+  
+		  // Также можно сохранять значение при нажатии Enter
+		  input.addEventListener("keydown", function(e) {
+		    if (e.key === "Enter") {
+		      clickableText.textContent = input.value;
+		      input.replaceWith(clickableText);
+		    }
+		  });
+		});
+    </script>
+</body>
+</html>
